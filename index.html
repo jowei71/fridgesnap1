@@ -1,206 +1,242 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FridgeSnap – AI Fridge Genius</title>
-  <meta name="theme-color" content="#0ea5e9" />
-  <link rel="manifest" href="data:application/manifest+json,{
-    \"name\":\"FridgeSnap\",
-    \"short_name\":\"FridgeSnap\",
-    \"start_url\":\".\",
-    \"display\":\"standalone\",
-    \"background_color\":\"#0ea5e9\",
-    \"theme_color\":\"#0ea5e9\",
-    \"icons\":[{\"src\":\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%93%B8%3C/text%3E%3C/svg%3E\",\"sizes\":\"any\"}]
-  }" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Content ROI Doctor</title>
+
+  <!-- ✅ FAVICON -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🩺</text></svg>">
+
+  <!-- ✅ OPEN GRAPH META -->
+  <meta property="og:title" content="Content ROI Doctor">
+  <meta property="og:description" content="Paste any blog URL and instantly see why it’s not ranking — with a concrete fix.">
+  <meta property="og:type" content="website">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .bg-gradient { background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); }
-    .dark .bg-gradient { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
-    .glass { backdrop-filter: blur(16px); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
-    .dark .glass { background: rgba(0,0,0,0.4); }
-    .card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-    .dark .card { background: #1e293b; color: #e2e8f0; }
-    .status-fresh { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .status-soon { background: linear-gradient(135deg, #f97316, #ea580c); }
-    .status-expired { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(circle at top, #0b1020, #020617);
+      color: white;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, #020617, #020617cc);
+      border-radius: 20px;
+      border: 1px solid #1e293b;
+      padding: 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 28px;
+    }
+
+    .badge {
+      background: linear-gradient(90deg, #fde68a, #facc15);
+      color: black;
+      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      background: black;
+      color: white;
+      margin-top: 6px;
+    }
+
+    input.invalid {
+      border: 1px solid #ef4444;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      border: none;
+      color: white;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid white;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .score-ring {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 6px solid #22c55e;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    .muted {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
   </style>
 </head>
-<body class="min-h-screen bg-gradient text-white">
 
-  <!-- Header -->
-  <header class="glass rounded-3xl mx-4 mt-6 p-6 text-center">
-    <h1 class="text-5xl font-black mb-2">FridgeSnap</h1>
-    <p class="text-xl opacity-90">Snap → Know → Eat → Save</p>
-    <div class="mt-4 flex justify-center gap-6 text-2xl">
-      <div><span id="saved" class="font-bold">$0</span> saved this month</div>
-      <button onclick="toggleDark()" class="p-3 bg-white/20 rounded-full">Toggle Dark Mode</button>
-    </div>
-  </header>
+<body>
+  <div class="wrap">
+    <h1>🩺 Content ROI Doctor <span class="badge">Built for SaaS founders - V1</span></h1>
+    <p class="muted">Paste a blog URL and see why it’s not ranking — with a concrete fix.</p>
 
-  <div class="p-6 space-y-8 max-w-5xl mx-auto">
+    <div class="grid">
+      <!-- ✅ LEFT PANEL -->
+      <div class="card">
+        <label>Article URL</label>
+        <input id="url" placeholder="https://example.com/post">
 
-    <!-- Quick Actions -->
-    <div class="grid grid-cols-3 gap-4">
-      <button onclick="openCamera()" class="bg-white/20 backdrop-blur rounded-2xl p-6 text-center hover:scale-105 transition">
-        <div class="text-5xl mb-2">Camera</div>
-        <div class="font-bold">Snap Fridge</div>
-      </button>
-      <button onclick="switchTab('manual')" class="bg-white/20 backdrop-blur rounded-2xl p-6 text-center hover:scale-105 transition">
-        <div class="text-5xl mb-2">Add Item</div>
-        <div class="font-bold">Manual</div>
-      </button>
-      <button onclick="switchTab('barcode')" class="bg-white/20 backdrop-blur rounded-2xl p-6 text-center hover:scale-105 transition">
-        <div class="text-5xl mb-2">Barcode</div>
-        <div class="font-bold">Scan</div>
-      </button>
-    </div>
+        <label>Target Keyword</label>
+        <input id="keyword" placeholder="saas content marketing">
 
-    <!-- Camera Tab -->
-    <div id="camera-tab" class="card p-8 text-gray-900 dark:text-gray-100">
-      <input type="file" id="photo" accept="image/*" capture="environment" class="hidden">
-      <div class="text-center space-y-6">
-        <button onclick="document.getElementById('photo').click()" 
-          class="bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold text-2xl py-8 px-16 rounded-3xl shadow-2xl hover:scale-105 transition">
-          Snap Your Fridge Now
+        <label>Audience (optional)</label>
+        <input id="audience" placeholder="SaaS founders, CMOs">
+
+        <label>Optional Notes</label>
+        <textarea id="notes" rows="4" placeholder="Goal, funnel stage, etc."></textarea>
+
+        <button id="runBtn">
+          <span id="btnText">🚀 Run Content Audit</span>
         </button>
-        <div id="preview" class="hidden">
-          <img id="img" class="max-w-full rounded-2xl shadow-2xl mx-auto">
-          <button onclick="analyze()" class="mt-6 bg-black text-white font-bold text-xl py-5 px-12 rounded-2xl">
-            Run AI Magic
-          </button>
-        </div>
+
+        <div id="status" class="muted"></div>
       </div>
-    </div>
 
-    <!-- Manual & Barcode Tabs (hidden by default) -->
-    <div id="manual-tab" class="card p-8 hidden">…(same clean manual entry as before)</div>
-    <div id="barcode-tab" class="card p-8 hidden">…(real barcode scanner)</div>
+      <!-- ✅ RIGHT PANEL -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div id="scoreRing" class="score-ring">–</div>
+          <div>
+            <div class="muted">OVERALL SCORE</div>
+            <div id="scoreSummary" class="muted">Run an audit to see what’s blocking your rankings.</div>
+          </div>
+        </div>
 
-    <!-- Results -->
-    <div id="results" class="hidden space-y-6">
-      <h2 class="text-4xl font-bold text-center">Your Fridge Report</h2>
-      <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      <div class="card p-8 text-center">
-        <canvas id="chart" class="max-w-xs mx-auto"></canvas>
+        <h3>Top Issues</h3>
+        <ul id="issues"></ul>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-8 py-4 bg-black/90 text-white rounded-full text-lg font-medium opacity-0 transition"></div>
+<script>
+const btn = document.getElementById("runBtn");
+const urlInput = document.getElementById("url");
+const scoreRing = document.getElementById("scoreRing");
+const scoreSummary = document.getElementById("scoreSummary");
+const issuesList = document.getElementById("issues");
+const status = document.getElementById("status");
 
-  <script>
-    const GEMINI_KEY = "AIzaSyDbgiKZjpNrgnYNMN4nLAJ7DLlcXTxpSqI"; // 
-    let items = [], chart = null, dark = false;
+function scoreColor(score) {
+  if (score < 50) return "#ef4444";
+  if (score < 75) return "#f59e0b";
+  return "#22c55e";
+}
 
-    function toggleDark() {
-      dark = !dark;
-      document.documentElement.classList.toggle('dark', dark);
-      toast(dark ? "Dark mode on" : "Light mode on");
-    }
+btn.onclick = async () => {
+  const url = urlInput.value.trim();
 
-    function toast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.remove('opacity-0');
-      setTimeout(() => t.classList.add('opacity-0'), 3000);
-    }
+  if (!url.startsWith("http")) {
+    urlInput.classList.add("invalid");
+    return;
+  } else {
+    urlInput.classList.remove("invalid");
+  }
 
-    function switchTab(tab) {
-      document.querySelectorAll('#camera-tab, #manual-tab, #barcode-tab').forEach(el => el.classList.add('hidden'));
-      document.getElementById(tab + '-tab').classList.remove('hidden');
-    }
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner"></div> Running audit...`;
 
-    document.getElementById('photo').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const url = URL.createObjectURL(file);
-      document.getElementById('img').src = url;
-      document.getElementById('preview').classList.remove('hidden');
-      toast("Photo ready – tap 'Run AI Magic'");
-    });
+  const res = await fetch("http://127.0.0.1:8000/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url,
+      target_keyword: document.getElementById("keyword").value,
+      audience: document.getElementById("audience").value
+    })
+  });
 
-    async function analyze() {
-      const file = document.getElementById('photo').files[0];
-      let detected = [];
+  const data = await res.json();
 
-      if (file && GEMINI_KEY && !GEMINI_KEY.includes('YOUR_')) {
-        toast("Running Gemini 1.5 Flash vision…");
-        const b64 = await fileToB64(file);
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [
-              { text: "List every food item you see. For each: name, category, estimated days until expiry (be realistic). Return ONLY a clean JSON array like: [{\"name\":\"Milk\",\"category\":\"dairy\",\"days\":4},...]" },
-              { inline_data: { mime_type: file.type, data: b64.split(',')[1] }}
-            ]}]
-          })
-        });
-        if (res.ok) {
-          const json = await res.json();
-          const text = json.candidates[0].content.parts[0].text;
-          detected = JSON.parse(text.match(/\[[\s\S]*\]/)[0]);
-        }
-      }
+  btn.disabled = false;
+  btn.innerHTML = "🚀 Run Content Audit";
 
-      if (detected.length === 0) {
-        toast("No key → demo mode");
-        detected = [{name:"Milk",category:"dairy",days:4},{name:"Spinach",category:"veg",days:1},{name:"Chicken",category:"meat",days:2},{name:"Yogurt",category:"dairy",days:12}];
-      }
+  const score = data.score;
+  scoreRing.textContent = score;
+  scoreRing.style.borderColor = scoreColor(score);
+  scoreSummary.textContent = data.summary;
 
-      items = detected.map(i => ({
-        ...i,
-        status: i.days > 7 ? "Fresh" : i.days > 2 ? "Use Soon" : "Expired"
-      }));
+  issuesList.innerHTML = "";
+  data.top_issues.forEach(i => {
+    const li = document.createElement("li");
+    li.textContent = i;
+    issuesList.appendChild(li);
+  });
+};
 
-      renderResults();
-      toast(`Snap! Found ${items.length} items`);
-    }
-
-    function renderResults() {
-      const g = document.getElementById('grid');
-      g.innerHTML = '';
-      items.forEach(i => {
-        const div = document.createElement('div');
-        div.className = `p-6 rounded-2xl text-white transform hover:scale-105 transition ${i.status==="Fresh"?"status-fresh":i.status==="Use Soon"?"status-soon":"status-expired"}`;
-        div.innerHTML = `<div class="text-2xl font-bold">${i.name}</div>
-          <div class="opacity-90">${i.category} • ${i.days} days left</div>
-          <div class="mt-4 text-xl font-bold">${i.status}</div>`;
-        g.appendChild(div);
-      });
-
-      const saved = items.filter(i => i.status !== "Expired").length * 3.8;
-      document.getElementById('saved').textContent = "$" + saved.toFixed(1);
-
-      const counts = {Fresh:0,"Use Soon":0,Expired:0};
-      items.forEach(i => counts[i.status]++);
-      if (chart) chart.destroy();
-      chart = new Chart(document.getElementById('chart'), {
-        type: 'doughnut',
-        data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#22c55e','#f97316','#ef4444'] }]},
-        options: { responsive: true, plugins: { legend: { position: 'bottom' }}}
-      });
-
-      document.getElementById('results').classList.remove('hidden');
-      document.getElementById('camera-tab').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function fileToB64(file) {
-      return new Promise(r => {
-        const reader = new FileReader();
-        reader.onload = () => r(reader.result);
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // Init
-    toast("FridgeSnap ready – tap the giant button!");
-  </script>
+document.getElementById("notes").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    btn.click();
+  }
+});
+</script>
 </body>
 </html>
